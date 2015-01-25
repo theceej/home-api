@@ -1,17 +1,12 @@
 var express = require('express');
 var router = express.Router();
 
-//var bodyParser = require('body-parser');
-//var jsonParser = bodyParser.json();
-
 var SerialPort = require('serialport').SerialPort
 var usbSerial = new SerialPort('/dev/ttyUSB0', {
   baudrate: 9600
 });
 
-
-
-// Turn TV on
+// Turn TV on and off using serial port
 router.put('/power', function(req, res) {
   if(typeof(req.body.on) === 'undefined') {
     res.status(400).json({ error : '"on" must be specified'})
