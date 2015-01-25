@@ -22,7 +22,7 @@ router.put('/power', function(req, res) {
       } else {
         res.status(200).json({ on : true });
       }
-    }
+    });
   } else {
     usbSerial.write('ka 01 00\n', function(err, results) {
       if(err) {
@@ -30,7 +30,7 @@ router.put('/power', function(req, res) {
       } else {
         res.status(200).json({ on : false });
       }
-    }
+    });
   }
 });
 
