@@ -7,26 +7,37 @@ var usbSerial = new SerialPort('/dev/ttyUSB0', {
 });
 
 // Turn TV on and off using serial port
-router.put('/power', function(req, res) {
+router.put('/state', function(req, res) {
   if(typeof(req.body.on) === 'undefined') {
     res.status(400).json({ error : '"on" must be specified'})
   } else if(req.body.on) {
     usbSerial.write('ka 01 01\n', function(err, results) {
       if(err) {
-        res.status(500).json({ error : 'Could not turn on TV: ' + err });
+        res.status(500).json({ 'error' : { 'description' : 'Could not turn on TV: ' + err }});
       } else {
-        res.status(200).json({ on : true });
+        res.status(200).json({ 'success' : { '/tv/state/on' : true }});
       }
     });
   } else {
     usbSerial.write('ka 01 00\n', function(err, results) {
       if(err) {
-        res.status(500).json({ error : 'Could not turn off TV: ' + err });
+        res.status(500).json({ 'error' : { 'description' : 'Could not turn off TV: ' + err }});
       } else {
-        res.status(200).json({ on : false });
+        res.status(200).json({ 'success' : { "/tv/state/on" : false }});
       }
     });
   }
+});
+
+router.get('/', function(req, res) {
+  usbSerial.write('ka 01 ff\n', function(err, results) {
+    if(err) {
+      res.status(500).json({ 'error' : { 'description' : 'Could not read TV status: ' + err }});
+    } else {
+      console.log(results);
+      res.status(200).json({ 'success' : { '/tv/state/on' : true }});
+    }
+  });
 });
 
 module.exports = router;
