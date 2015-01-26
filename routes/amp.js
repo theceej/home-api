@@ -5,8 +5,6 @@ var lirc = require('lirc_node');
 lirc.init();
 
 router.put('/state', function(req, res) {
-  console.log(Object.keys(req.body).length);
-
   async.series([
     // Turn amp on and off using lirc
     function(callback) {
@@ -55,7 +53,7 @@ router.put('/state', function(req, res) {
             });
             break;
           default:
-            callback(null, {'error' : { 'description' : 'Invalid source specified, valid options are "chromecase", "ps3", "pi", "aux" or "radio"'}});
+            callback(null, { 'error' : { 'description' : 'Invalid source specified, valid options are "chromecase", "ps3", "pi", "aux" or "radio"'}});
             break;
         }
       } else {
@@ -65,7 +63,13 @@ router.put('/state', function(req, res) {
 
   ], function(err, results) {
     if(!err) {
-      res.status(200).json(results.filter( function() {return true}));
+      if(results.filter(Boolean) !== Object.keys(req.body).length)
+      {
+        results.push({ 'error' : { 'description' : 'Some options were invalid and not processed' }});
+        res.status(400).json(results.filter(Boolean));
+      } else {
+        res.status(200).json(results.filter(Boolean));
+      }
     }
   });
 
