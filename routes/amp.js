@@ -21,6 +21,7 @@ router.put('/state', function(req, res) {
           });
         }
       }
+      callback();
     },
     // Change the amp source
     function(callback) {
@@ -57,7 +58,9 @@ router.put('/state', function(req, res) {
             break;
         }
       }
+      callback();
     }
+
   ], function(err, results) {
     if(!err) {
       res.status(200).json(results);
