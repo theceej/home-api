@@ -24,7 +24,7 @@ router.put('/state', function(req, res) {
     });
   } else {
     res.status(400).json({ 'error' : { 'description' : 'Invalid option specified' }});
-  } else
+  }
 });
 
 module.exports = router;
