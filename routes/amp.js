@@ -20,8 +20,9 @@ router.put('/state', function(req, res) {
             callback(null, { 'success' : { 'amp/state/on' : false }});
           });
         }
+      } else {
+        callback();
       }
-      callback();
     },
     // Change the amp source
     function(callback) {
@@ -57,13 +58,14 @@ router.put('/state', function(req, res) {
             callback(null, {'error' : { 'description' : 'Invalid source specified, valid options are "chromecase", "ps3", "pi", "aux" or "radio"'}});
             break;
         }
+      } else {
+        callback();
       }
-      callback();
     }
 
   ], function(err, results) {
     if(!err) {
-      res.status(200).json(results);
+      res.status(200).json(results.filter( function() {return true}));
     }
   });
 
