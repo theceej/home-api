@@ -29,15 +29,4 @@ router.put('/state', function(req, res) {
   }
 });
 
-router.get('/', function(req, res) {
-  usbSerial.write('ka 01 ff\n', function(err, results) {
-    if(err) {
-      res.status(500).json({ 'error' : { 'description' : 'Could not read TV status: ' + err }});
-    } else {
-      console.log(results);
-      res.status(200).json({ 'success' : { '/tv/state/on' : true }});
-    }
-  });
-});
-
 module.exports = router;
