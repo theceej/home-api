@@ -48,7 +48,7 @@ router.put('/state', function(req, res) {
           res.status(200).json({ 'success' : { 'amp/state/source' : 'radio' }});
         });
         break;
-      case default:
+      default:
         res.status(400).json({'error' : { 'description' : 'Invalid source specified, valid options are "chromecase", "ps3", "pi", "aux" or "radio"'}})
     }
   }
