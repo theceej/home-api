@@ -4,6 +4,9 @@ var router = express.Router();
 var SerialPort = require('serialport').SerialPort
 var usbSerial = new SerialPort('/dev/ttyUSB0', { 'baudrate' : 9600 });
 
+// Need to store some state
+var currentOn = false;
+
 // Turn TV on and off using serial port
 router.put('/state', function(req, res) {
   if(req.body.on === true) {
@@ -11,7 +14,8 @@ router.put('/state', function(req, res) {
       if(err) {
         res.status(500).json([{ 'error' : { 'description' : 'Could not turn on TV: ' + err }}]);
       } else {
-        res.status(200).json([{ 'success' : { '/tv/state/on' : true }}]);
+        currentOn = true;
+        res.status(200).json([{ 'success' : { '/tv/state/on' : currentOn }}]);
       }
     });
   } else if(req.body.on === false) {
@@ -19,12 +23,17 @@ router.put('/state', function(req, res) {
       if(err) {
         res.status(500).json([{ 'error' : { 'description' : 'Could not turn off TV: ' + err }}]);
       } else {
-        res.status(200).json([{ 'success' : { '/tv/state/on' : false }}]);
+        currentOn = false;
+        res.status(200).json([{ 'success' : { '/tv/state/on' : currentOn }}]);
       }
     });
   } else {
     res.status(400).json([{ 'error' : { 'description' : 'Invalid option specified' }}]);
   }
+});
+
+router.get ('/', function(req, res) {
+  res.status(200).json({ 'state' : { 'on' : currentOn }});
 });
 
 module.exports = router;

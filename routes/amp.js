@@ -143,4 +143,8 @@ router.put('/state', function(req, res) {
 
 });
 
+router.get ('/', function(req, res) {
+  res.status(200).json({ 'state' : { 'on' : currentOn, 'source' : currentSource, 'volume' : currentVol, 'mute' : currentMute }});
+});
+
 module.exports = router;
