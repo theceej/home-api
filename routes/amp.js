@@ -83,7 +83,7 @@ router.put('/state', function(req, res) {
             currentVol++;
             callback(null, {'success' : {'amp/state/volume' : currentVol }});
           });
-        } else if (req.body,volume === 'down') {
+        } else if (req.body.volume === 'down') {
           lirc.irsend.send_once("amp", "volDown", function() {
             currentVol--;
             callback(null, {'success' : {'amp/state/volume' : currentVol }});
