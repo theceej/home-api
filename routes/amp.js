@@ -67,8 +67,19 @@ router.put('/state', function(req, res) {
     function(callback) {
       if('volume' in req.body) {
         var relativeVol = req.body.volume - currentVol;
-        console.log(Math.abs(relativeVol));
-
+        if(relativeVol > 0) {
+          lirc.irsend.send_once("amp", Array.apply(null, Array(Math.abs(relativeVol))).map(String.prototype.valueOf,"volUp"), function() {
+            currentVol = req.body.volume;
+            callback(null, {'success' : {'amp/state/volume' : currentVol }});
+          }
+        } else if (relativeVol < 0) {
+          lirc.irsend.send_once("amp", Array.apply(null, Array(Math.abs(relativeVol))).map(String.prototype.valueOf,"volDown"), function() {
+            currentVol = req.body.volume;
+            callback(null, {'success' : {'amp/state/volume' : currentVol }});
+          }
+        } else {
+          callback(null, {'success' : {'amp/state/volume' : currentVol }});
+        }
       } else {
         callback();
       }
