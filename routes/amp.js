@@ -4,7 +4,11 @@ var async = require('async');
 var lirc = require('lirc_node');
 lirc.init();
 
+// Need to store some state
 var currentVol = -82;
+var currentOn = false;
+var currentSource = 'unknown';
+var currentMute = false;
 
 router.put('/state', function(req, res) {
   async.series([
@@ -14,11 +18,14 @@ router.put('/state', function(req, res) {
         if(req.body.on) {
           lirc.irsend.send_once("amp", "powerOn", function() {
             currentVol = -82;
-            callback(null, { 'success' : { 'amp/state/on' : true }});
+            currentOn = true;
+            currentMute = false;
+            callback(null, { 'success' : { 'amp/state/on' : currentOn }});
           });
         } else {
           lirc.irsend.send_once("amp", "powerOff", function() {
-            callback(null, { 'success' : { 'amp/state/on' : false }});
+            currentOn = false;
+            callback(null, { 'success' : { 'amp/state/on' : currentOn }});
           });
         }
       } else {
@@ -32,27 +39,32 @@ router.put('/state', function(req, res) {
         {
           case 'chromecast':
             lirc.irsend.send_once("amp", "vcrDvr", function() {
-              callback(null, { 'success' : { 'amp/state/source' : 'chromecast' }});
+              currentSource = 'chromecast';
+              callback(null, { 'success' : { 'amp/state/source' : currentSource }});
             });
             break;
           case 'ps3':
             lirc.irsend.send_once("amp", "game", function() {
-              callback(null, { 'success' : { 'amp/state/source' : 'ps3' }});
+              currentSource = 'ps3';
+              callback(null, { 'success' : { 'amp/state/source' : currentSource }});
             });
             break;
           case 'pi':
             lirc.irsend.send_once("amp", "cd", function() {
-              callback(null, { 'success' : { 'amp/state/source' : 'pi' }});
+              currentSource = 'pi';
+              callback(null, { 'success' : { 'amp/state/source' : currentSource }});
             });
             break;
           case 'aux':
             lirc.irsend.send_once("amp", "aux", function() {
-              callback(null, { 'success' : { 'amp/state/source' : 'aux' }});
+              currentSource = 'aux';
+              callback(null, { 'success' : { 'amp/state/source' : currentSource }});
             });
             break;
           case 'radio':
             lirc.irsend.send_once("amp", "tuner", function() {
-              callback(null, { 'success' : { 'amp/state/source' : 'radio' }});
+              currentSource = 'radio';
+              callback(null, { 'success' : { 'amp/state/source' : currentSource }});
             });
             break;
           default:
@@ -66,19 +78,51 @@ router.put('/state', function(req, res) {
     // Change the amp volume
     function(callback) {
       if('volume' in req.body) {
-        var relativeVol = req.body.volume - currentVol;
-        if(relativeVol > 0) {
-          lirc.irsend.send_once("amp", Array.apply(null, Array(Math.abs(relativeVol))).map(String.prototype.valueOf,"volUp"), function() {
-            currentVol = req.body.volume;
+        if(req.body.volume === 'up') {
+          lirc.irsend.send_once("amp", "volUp", function() {
+            currentVol++;
             callback(null, {'success' : {'amp/state/volume' : currentVol }});
           });
-        } else if (relativeVol < 0) {
-          lirc.irsend.send_once("amp", Array.apply(null, Array(Math.abs(relativeVol))).map(String.prototype.valueOf,"volDown"), function() {
-            currentVol = req.body.volume;
+        } else if (req.body,volume === 'down') {
+          lirc.irsend.send_once("amp", "volDown", function() {
+            currentVol--;
             callback(null, {'success' : {'amp/state/volume' : currentVol }});
           });
         } else {
-          callback(null, {'success' : {'amp/state/volume' : currentVol }});
+          var relativeVol = req.body.volume - currentVol;
+          if(relativeVol > 0) {
+            lirc.irsend.send_once("amp", Array.apply(null, Array(Math.abs(relativeVol))).map(String.prototype.valueOf,"volUp"), function() {
+              currentVol = req.body.volume;
+              callback(null, {'success' : {'amp/state/volume' : currentVol }});
+            });
+          } else if (relativeVol < 0) {
+            lirc.irsend.send_once("amp", Array.apply(null, Array(Math.abs(relativeVol))).map(String.prototype.valueOf,"volDown"), function() {
+              currentVol = req.body.volume;
+              callback(null, {'success' : {'amp/state/volume' : currentVol }});
+            });
+          } else {
+            callback(null, {'success' : {'amp/state/volume' : currentVol }});
+          }
+        }
+      } else {
+        callback();
+      }
+    },
+    // Turn mute on/off
+    function(callback) {
+      if('mute' in req.body) {
+        if(req.body.mute && !currentMute) {
+          lirc.irsend.send_once("amp", "muting", function() {
+            currentMute = true;
+            callback(null, { 'success' : { 'amp/state/mute' : currentMute }});
+          });
+        } else if (!req.body.mute && currentMute) {
+          lirc.irsend.send_once("amp", "muting", function() {
+            currentMute = false;
+            callback(null, { 'success' : { 'amp/state/mute' : currentMute }});
+          });
+        } else {
+          callback(null, { 'success' : { 'amp/state/mute' : currentMute }});
         }
       } else {
         callback();
