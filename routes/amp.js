@@ -4,6 +4,8 @@ var async = require('async');
 var lirc = require('lirc_node');
 lirc.init();
 
+var currentVol = -82;
+
 router.put('/state', function(req, res) {
   async.series([
     // Turn amp on and off using lirc
@@ -11,6 +13,7 @@ router.put('/state', function(req, res) {
       if('on' in req.body) {
         if(req.body.on) {
           lirc.irsend.send_once("amp", "powerOn", function() {
+            currentVol = -82;
             callback(null, { 'success' : { 'amp/state/on' : true }});
           });
         } else {
@@ -59,11 +62,21 @@ router.put('/state', function(req, res) {
       } else {
         callback();
       }
+    },
+    // Change the amp volume
+    function(callback) {
+      if('volume' in req.body) {
+        var relativeVol = req.body.volume - currentVol;
+        console.log(Math.abs(relativeVol));
+
+      } else {
+        callback();
+      }
     }
 
   ], function(err, results) {
     if(!err) {
-      if(results.filter(Boolean) !== Object.keys(req.body).length)
+      if(results.filter(Boolean).length !== Object.keys(req.body).length)
       {
         results.push({ 'error' : { 'description' : 'Some options were invalid and not processed' }});
         res.status(400).json(results.filter(Boolean));
